@@ -22,6 +22,7 @@ $stm->listGames();
 result:
 
 ```php
+...
 [57] => Array
         (
             [game] => Lotus Notes
@@ -35,9 +36,8 @@ result:
             [assignment] => Unknown-ff-ff-ff-ff-ff-ff
             [mode] => Server
         )
-
+...
 ```
-
 ### create a game
 
 Game is a service in speed-touch language
@@ -70,3 +70,7 @@ $stm->configWLAN(
 ## Issues
 
 Router resets after a while, but configuration sticks.
+
+## Testing
+
+Tested on SpeedTouch THOMSON ST780
