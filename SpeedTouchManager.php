@@ -15,6 +15,33 @@ class SpeedTouchManager
 	private $user;
 	private $pass;
 
+	const URL_WLAN = '/cgi/b/_wli_/cfg/';
+	const URL_GAME_CREATE = '/cgi/b/games/newserv/';
+	const URL_GAMES_LIST = '/cgi/b/games/servdef/';
+	const URL_GAME_CONF = '/cgi/b/games/_servconf_/cfg/';
+	const URL_GAME_ASSIGN = '/cgi/b/games/cfg/';
+
+	const TYPE_802_11b = 0;
+	const TYPE_802_11b_legacy_g = 1;
+	const TYPE_802_11bg = 2;
+	const TYPE_802_11g = 3;
+
+	const ALLOW_NONE = 0;
+	const ALLOW_AUTO = 1;
+	const ALLOW_REGISTER = 2;
+
+	const ENC_DISABLED = 0;
+	const ENC_WEP = 1;
+	const ENC_WPA = 2;
+
+	const WPA = 1;
+	const WPA2 = 2;
+	const WPA_WPA2 = 3;
+
+	const PROTO_ANY = 0;
+	const PROTO_TCP = 6;
+	const PROTO_UDP = 17;
+
 	public function __construct($host, $user = null, $pass = null)
 	{
 		$this->host = $host;
@@ -39,11 +66,11 @@ class SpeedTouchManager
 		curl_setopt($ch, CURLOPT_URL, $this->getBaseUrl() . $relative_url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
-		if ($post_data)
-		{
+		if ($post_data) {
+			//print_r($post_data);
 			$a = array();
 			foreach ($post_data as $k => $v)
-				$a[] = $k .'='.urlencode($v);
+				$a[] = $k . '=' . urlencode($v);
 			$post_data = implode("&", $a);
 			curl_setopt($ch, CURLOPT_POST, 1);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
@@ -53,7 +80,7 @@ class SpeedTouchManager
 		$html = curl_exec($ch);
 		$header = curl_getinfo($ch);
 		curl_close($ch);
-		sleep(3);
+		//sleep(3);
 		return array($header, $html);
 	}
 
@@ -67,9 +94,37 @@ class SpeedTouchManager
 		return $html;
 	}
 
+
+	/**
+	 * fetch form data from given url
+	 */
+	public function formData($url)
+	{
+		$dw = new DOMWalker($this->fetch($url));
+		$rows = $dw->query('//input');
+		$rez = array();
+		foreach ($rows as $row) {
+			$k = $row->getAttribute('name');
+			$v = $row->getAttribute('value');
+
+			if ($k && $v)
+				$rez[$k] = $v;
+		}
+
+		return $rez;
+	}
+
+	public function postForm($url, $data)
+	{
+		$d = $this->formData($url);
+		$data[2] = $d[2];
+
+		$this->fetch_url($url, $data);
+	}
+
 	public function listGames()
 	{
-		$html = $this->fetch('/cgi/b/games/servdef/');
+		$html = $this->fetch(self::URL_GAMES_LIST);
 
 		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
 		$rows = $dw->query('//table[@class="edittable"]/tr');
@@ -90,16 +145,21 @@ class SpeedTouchManager
 
 	public function createGame($name)
 	{
-		$this->fetch_url('/cgi/b/games/newserv/', array(
+		$this->postForm(self::URL_GAME_CREATE, array(
 			0 => 10,
 			1 => '',
 			30 => $name,
 			33 => 1
 		));
 	}
-	const PROTO_ANY = 0;
-	const PROTO_TCP = 6;
-	const PROTO_UDP = 17;
+
+	public function deleteGame($name)
+	{
+		$this->postForm(self::URL_GAMES_LIST, array(
+			0 => 22,
+			1 => $name,
+		));
+	}
 
 	public function assignPorts($name, $protocol, $from_port, $to_port = '', $dest_port = '', $trigger_prot = self::PROTO_ANY, $trigger_port = '')
 	{
@@ -110,7 +170,7 @@ class SpeedTouchManager
 		if (!$dest_port)
 			$to_port = $from_port;
 
-		$this->fetch_url('/cgi/b/games/_servconf_/cfg/', array(
+		$this->postForm(self::URL_GAME_CONF, array(
 			0 => 19,
 			1 => '',
 			30 => $name,
@@ -123,17 +183,9 @@ class SpeedTouchManager
 		));
 	}
 
-	public function deleteGame($name)
-	{
-		$this->fetch_url('/cgi/b/games/servdef/', array(
-			0 => 22,
-			1 => $name
-		));
-	}
-
 	public function assignGame($name, $ip, $log = false)
 	{
-		$this->fetch_url('/cgi/b/games/cfg/', array(
+		$this->postForm(self::URL_GAME_ASSIGN, array(
 			0 => 19,
 			1 => '',
 			30 => $name,
@@ -144,32 +196,24 @@ class SpeedTouchManager
 		));
 	}
 
-	const TYPE_802_11b = 0;
-	const TYPE_802_11b_legacy_g = 1;
-	const TYPE_802_11bg = 2;
-	const TYPE_802_11g = 3;
-
-	const ALLOW_NONE = 0;
-	const ALLOW_AUTO = 1;
-	const ALLOW_REGISTER = 2;
-
-	const ENC_DISABLED = 0;
-	const ENC_WEP = 1;
-	const ENC_WPA = 2;
-
-	const WPA = 1;
-	const WPA2 = 2;
-	const WPA_WPA2 = 3;
-
+	public function unassignGame($name)
+	{
+		$this->postForm(self::URL_GAME_ASSIGN, array(
+			0 => 22,
+			1 => $name,
+		));
+	}
 
 	public function configWLAN($enabled, $ssid, $type, $channel, $allow_multicast, $broadcast_name, $allow, $encryption, $wpa_psk, $wpa_ver)
 	{
+		$d = $this->formData(self::URL_WLAN);
 
-		$this->fetch_url('/cgi/b/_wli_/cfg/', array(
+		$data = array(
 			0 => 10,
 			1 => '',
+			2 => $d[2],
 			31 => $enabled ? 1 : 0,
-			//32 => $ssid,
+			32 => 'WLAN: ' . $d[33],
 			33 => $ssid,
 			34 => $type,
 			35 => 0, // auto or manual
@@ -181,6 +225,12 @@ class SpeedTouchManager
 			41 => $wpa_psk,
 			44 => $wpa_ver,
 			53 => 0
-		));
+		);
+		foreach ($data as $k => $v)
+			$d[$k] = $v;
+
+		ksort($d);
+
+		$this->fetch_url(self::URL_WLAN, $d);
 	}
 }

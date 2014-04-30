@@ -52,6 +52,18 @@ $stm->assignPorts('git', SpeedTouchManager::PROTO_TCP, 9418);
 $stm->assignGame($srv, '192.168.1.1');
 ```
 
+### unassign game
+```php
+$stm->unassignGame($srv, '192.168.1.1');
+```
+### delete game
+
+game must be unassigned first
+
+```php
+$stm->deleteGame($srv, '192.168.1.1');
+```
+
 ### configure WLAN
 ```php
 $stm->configWLAN(
@@ -67,10 +79,8 @@ $stm->configWLAN(
 	SpeedTouchManager::WPA_WPA2);     // WPA-PSK Version
 ```
 
-## Issues
-
-Router resets after a while, but configuration sticks.
-
 ## Testing
 
-Tested on SpeedTouch THOMSON ST780
+Tested on:
+- SpeedTouch THOMSON ST780 (7.4.35.2)
+- SpeedTouch THOMSON TG782 (8.6.Q.3)
