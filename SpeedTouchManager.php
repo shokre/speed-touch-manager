@@ -122,6 +122,10 @@ class SpeedTouchManager
 		$this->fetch_url($url, $data);
 	}
 
+	/**
+	 * list available services
+	 * @return array
+	 */
 	public function listGames()
 	{
 		$html = $this->fetch(self::URL_GAMES_LIST);
