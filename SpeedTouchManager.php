@@ -147,12 +147,14 @@ class SpeedTouchManager
 			if ($row->childNodes->length != 5)
 				continue;
 			$a = array();
+			$game = $row->childNodes->item(0)->nodeValue;
 			$z = $row->childNodes->item(1)->nodeValue;
+			printf("- %s\n", $row->childNodes->item(1)->childNodes->item(0)->getAttribute('href'));
 			if ($z == $bl)
 				$z = '';
 			$a['assignment'] = $z;
 			$a['mode'] = $row->childNodes->item(2)->nodeValue;
-			$rez['game'] = $a;
+			$rez[$game] = $a;
 		}
 
 		return $rez;
