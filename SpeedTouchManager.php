@@ -82,6 +82,7 @@ class SpeedTouchManager
 
 		if ($timeout)
 			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
 		// grab URL and pass it to the browser
 		$html = curl_exec($ch);
 		$header = curl_getinfo($ch);
@@ -232,7 +233,7 @@ class SpeedTouchManager
 	}
 
 	/** local network stuff */
-	public function configLocal($ip_address = '192.168.1.254',
+	public function configLocal($ip_address = '192.168.7.254',
 								$netmask = '255.255.255.0',
 								$auto_ip = false,
 								$dhcp_server_enable = false,
@@ -243,13 +244,15 @@ class SpeedTouchManager
 								$dhcp_lease_mins = 0,
 								$dhcp_lease_secs = 0)
 	{
-		$d = $this->formData(self::URL_INTF);
+		$name = 'LocalNetwork';
+
+		$d = $this->formData(self::URL_INTF . '?be=0&l0=3&l1=1&name=LocalNetwork');
 
 		$a = array(
 			0 => 10,
 			1 => '',
 			5 => 2,
-			31 => 'LocalNetwork',
+			31 => $name,
 			57 => $ip_address,
 			58 => $netmask,
 			33 => $d[33],
@@ -260,7 +263,6 @@ class SpeedTouchManager
 			48 => $dhcp_lease_mins,
 			49 => $dhcp_lease_secs,
 			51 => 'LAN_private',
-			56 => 1,
 		);
 
 		if (isset($d[2]))
