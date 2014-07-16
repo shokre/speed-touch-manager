@@ -62,7 +62,7 @@ class SpeedTouchManager
 		return $s;
 	}
 
-	public function fetch_url($relative_url = '/', $post_data = null)
+	public function fetch_url($relative_url = '/', $post_data = null, $timeout = null)
 	{
 		$ch = curl_init();
 
@@ -80,6 +80,8 @@ class SpeedTouchManager
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
 		}
 
+		if ($timeout)
+			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 		// grab URL and pass it to the browser
 		$html = curl_exec($ch);
 		$header = curl_getinfo($ch);
@@ -262,7 +264,7 @@ class SpeedTouchManager
 		if ($dhcp_server_enable) $a[56] = 1;
 
 
-		return $this->fetch_url(self::URL_INTF, $data);
+		return $this->fetch_url(self::URL_INTF, $a, 5);
 	}
 
 	public function addRouterIPAddress($ip_address = '192.168.1.254',
