@@ -24,6 +24,7 @@ class SpeedTouchManager
 	const URL_INTERNET = '/cgi/b/is/_pppoe_/ov/';
 	const URL_INTERNET_STATE = '/cgi/b/is/';
 	const URL_CHANGE_PASS = '/cgi/b/users/cfg/changepsswd/';
+	const URL_RESET = '/cgi/b/info/reset/';
 
 	const TYPE_802_11b = 0;
 	const TYPE_802_11b_legacy_g = 1;
@@ -286,6 +287,14 @@ class SpeedTouchManager
 			56 => 1,
 			57 => $ip_address,
 			58 => $netmask
+		));
+	}
+
+	public function factoryReset()
+	{
+		return $this->postForm(self::URL_RESET, array(
+			0 => 18,
+			1 => '',
 		));
 	}
 
