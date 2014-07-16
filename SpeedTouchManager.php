@@ -123,7 +123,8 @@ class SpeedTouchManager
 	public function postForm($url, $data)
 	{
 		$d = $this->formData($url);
-		$data[2] = $d[2];
+		if (isset($d[2]))
+			$data[2] = $d[2];
 		list($header, $html) = $this->fetch_url($url, $data);
 		return $header['http_code'] == 200;
 	}
@@ -140,6 +141,7 @@ class SpeedTouchManager
 		$rows = $dw->query('//table[@class="edittable"]/tr');
 		$rez = array();
 		$bl = chr(194).chr(160);
+
 		foreach ($rows as $row) {
 			/** @var $row DOMElement */
 			if ($row->childNodes->length != 5)
@@ -245,7 +247,6 @@ class SpeedTouchManager
 			0 => 10,
 			1 => '',
 			5 => 2,
-			2 => $d[2],
 			31 => 'LocalNetwork',
 			57 => $ip_address,
 			58 => $netmask,
@@ -259,6 +260,9 @@ class SpeedTouchManager
 			51 => 'LAN_private',
 			56 => 1,
 		);
+
+		if (isset($d[2]))
+			$a[2] = $d[2];
 
 		if ($auto_ip) $a[35] = 1;
 		if ($dhcp_server_enable) $a[56] = 1;
@@ -342,7 +346,6 @@ class SpeedTouchManager
 		$data = array(
 			0 => 10,
 			1 => '',
-			2 => $d[2],
 			31 => $enabled ? 1 : 0,
 			32 => 'WLAN: ' . $d[33],
 			33 => $ssid,
@@ -357,6 +360,10 @@ class SpeedTouchManager
 			44 => $wpa_ver,
 			53 => 0
 		);
+
+		if (isset($d[2]))
+			$data[2] = $d[2];
+
 		foreach ($data as $k => $v)
 			$d[$k] = $v;
 
