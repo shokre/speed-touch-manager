@@ -20,6 +20,7 @@ class SpeedTouchManager
 	const URL_GAME_CREATE = '/cgi/b/games/newserv/';
 	const URL_GAMES_LIST = '/cgi/b/games/servdef/';
 	const URL_GAME_CONF = '/cgi/b/games/_servconf_/cfg/';
+	const URL_GAME_DETAILS = '/cgi/b/games/_servconf_/ov/';
 	const URL_GAME_ASSIGN = '/cgi/b/games/cfg/';
 	const URL_INTERNET = '/cgi/b/is/_pppoe_/ov/';
 	const URL_INTERNET_STATE = '/cgi/b/is/';
@@ -46,6 +47,12 @@ class SpeedTouchManager
 	const PROTO_ANY = 0;
 	const PROTO_TCP = 6;
 	const PROTO_UDP = 17;
+
+	public static $PROTO_MAP = array(
+		'ANY' => self::PROTO_ANY,
+		'TCP' => self::PROTO_TCP,
+		'UDP' => self::PROTO_UDP,
+	);
 
 	public function __construct($host, $user = null, $pass = null)
 	{
@@ -142,7 +149,7 @@ class SpeedTouchManager
 		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
 		$rows = $dw->query('//table[@class="edittable"]/tr');
 		$rez = array();
-		$bl = chr(194).chr(160);
+		$bl = chr(194) . chr(160);
 
 		foreach ($rows as $row) {
 			/** @var $row DOMElement */
@@ -151,12 +158,35 @@ class SpeedTouchManager
 			$a = array();
 			$game = $row->childNodes->item(0)->nodeValue;
 			$z = $row->childNodes->item(1)->nodeValue;
-			printf("- %s\n", $row->childNodes->item(1)->childNodes->item(0)->getAttribute('href'));
+			//printf("- %s\n", $row->childNodes->item(1)->childNodes->item(0)->getAttribute('href'));
 			if ($z == $bl)
 				$z = '';
 			$a['assignment'] = $z;
 			$a['mode'] = $row->childNodes->item(2)->nodeValue;
 			$rez[$game] = $a;
+		}
+
+		return $rez;
+	}
+
+	public function listGamePorts($name)
+	{
+		$html = $this->fetch(self::URL_GAME_DETAILS . '?name=' . $name);
+
+		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
+		$rows = $dw->query('//table[@class="edittable"]/tr');
+		$rez = array();
+		$bl = chr(194) . chr(160);
+
+		foreach ($rows as $row) {
+			/** @var $row DOMElement */
+			if ($row->childNodes->length != 5)
+				continue;
+			$a = array();
+			$a['proto'] = self::$PROTO_MAP[$row->childNodes->item(0)->nodeValue];
+			$a['from'] = split(' - ', $row->childNodes->item(1)->nodeValue);
+			$a['to'] = split(' - ', $row->childNodes->item(2)->nodeValue);
+			$rez[] = $a;
 		}
 
 		return $rez;
@@ -187,7 +217,7 @@ class SpeedTouchManager
 			$to_port = $from_port;
 
 		if (!$dest_port)
-			$to_port = $from_port;
+			$dest_port = $from_port;
 
 		$this->postForm(self::URL_GAME_CONF, array(
 			0 => 19,
