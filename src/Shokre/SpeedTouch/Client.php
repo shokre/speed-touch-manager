@@ -1,6 +1,8 @@
 <?php
 
-require_once "DOMWalker.php";
+namespace Shokre\SpeedTouch;
+
+use Shokre\SpeedTouch\Utils\DOMWalker;
 
 /**
  * class for controling speed touch router
@@ -9,7 +11,7 @@ require_once "DOMWalker.php";
  * @copyright Copyright (c) 2002, Krešo Brlek
  * @version 0.0.2
  */
-class SpeedTouchManager
+class Client
 {
 	private $host;
 	private $user;
@@ -26,6 +28,8 @@ class SpeedTouchManager
 	const URL_INTERNET_STATE = '/cgi/b/is/';
 	const URL_CHANGE_PASS = '/cgi/b/users/cfg/changepsswd/';
 	const URL_RESET = '/cgi/b/info/reset/';
+
+	const URL_DEVICES_LIST = '/cgi/b/devs/ov/';
 
 	const TYPE_802_11b = 0;
 	const TYPE_802_11b_legacy_g = 1;
@@ -53,9 +57,11 @@ class SpeedTouchManager
 		'TCP' => self::PROTO_TCP,
 		'UDP' => self::PROTO_UDP,
 	);
+	private $_blank = '';
 
 	public function __construct($host, $user = null, $pass = null)
 	{
+		$this->_blank = chr(194) . chr(160);
 		$this->host = $host;
 		$this->user = $user;
 		$this->pass = $pass;
@@ -169,9 +175,17 @@ class SpeedTouchManager
 		return $rez;
 	}
 
+	private function parse_range($s)
+	{
+		$s = split(' - ', $s);
+		foreach ($s as &$v)
+			$v *=1;
+		return $s;
+	}
+
 	public function listGamePorts($name)
 	{
-		$html = $this->fetch(self::URL_GAME_DETAILS . '?name=' . $name);
+		$html = $this->fetch(self::URL_GAME_DETAILS . '?name=' . urlencode($name));
 
 		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
 		$rows = $dw->query('//table[@class="edittable"]/tr');
@@ -184,8 +198,9 @@ class SpeedTouchManager
 				continue;
 			$a = array();
 			$a['proto'] = self::$PROTO_MAP[$row->childNodes->item(0)->nodeValue];
-			$a['from'] = split(' - ', $row->childNodes->item(1)->nodeValue);
-			$a['to'] = split(' - ', $row->childNodes->item(2)->nodeValue);
+			$a['from'] = $this->parse_range($row->childNodes->item(1)->nodeValue);
+			$z = $this->parse_range($row->childNodes->item(2)->nodeValue);
+			$a['to'] = array_shift($z);
 			$rez[] = $a;
 		}
 
@@ -413,5 +428,53 @@ class SpeedTouchManager
 		ksort($d);
 
 		return $this->fetch_url(self::URL_WLAN, $d);
+	}
+
+	public function str($s)
+	{
+		$s = trim($s);
+		if ($s == $this->_blank)
+			$s = '';
+		return $s;
+	}
+
+	public function listDevices()
+	{
+		$html = $this->fetch(self::URL_DEVICES_LIST);
+
+		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
+		$rows = $dw->query('//table[@class="edittable"]/tr');
+		$rez = array();
+		$bl = chr(194) . chr(160);
+
+		foreach ($rows as $row) {
+			/** @var $row DOMElement */
+			$cn = $row->childNodes;
+			$name = $cn->item(0)->nodeValue;
+
+			if (!$name)
+				continue;
+			$ip = $cn->item(1)->nodeValue;
+			$a = array(
+				'ip' => $ip,
+				'name' => $name,
+			);
+
+			$mcs = $dw->query('.//a', $cn->item(0));
+			if ($mcs) {
+				$h = $mcs[0]->getAttribute('href');
+				$mat = array();
+				if (preg_match("/key=(([0-9A-F]{2}:){5}([0-9A-F]{2}))'/i", $h, $mat)) {
+					$a['mac'] = $mat[1];
+				}
+
+			}
+			$pv = $this->str($cn->item(2)->nodeValue);
+			if ($cn->length == 3)
+				$a['port'] = $pv;
+			$rez[$name] = $a;
+		}
+
+		return $rez;
 	}
 }
