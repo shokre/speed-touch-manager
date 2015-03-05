@@ -381,7 +381,6 @@ class SpeedTouchManager
 		));
 	}
 
-
 	public function configWLAN($enabled, $ssid, $type, $channel, $allow_multicast, $broadcast_name, $allow, $encryption, $wpa_psk, $wpa_ver)
 	{
 		$d = $this->formData(self::URL_WLAN);
@@ -389,6 +388,7 @@ class SpeedTouchManager
 		$data = array(
 			0 => 10,
 			1 => '',
+			2 => $d[2],
 			31 => $enabled ? 1 : 0,
 			32 => 'WLAN: ' . $d[33],
 			33 => $ssid,
