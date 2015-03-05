@@ -28,9 +28,11 @@ class DOMWalker
 			$this->content_node = null;
 	}
 
-	function query($xp)
+	function query($xp, $cn = null)
 	{
-		$rez = $this->xpath->query($xp, $this->content_node);
+		if (!$cn)
+			$cn = $this->content_node;
+		$rez = $this->xpath->query($xp, $cn);
 		return iterator_to_array($rez);
 	}
 
