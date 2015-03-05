@@ -9,7 +9,7 @@ class PortMapping
 
 	private $type;
 	private $from = array();
-	private $to = array();
+	private $to;
 
 	/**
 	 * @param $type - PROTO_*
@@ -41,5 +41,19 @@ class PortMapping
 	{
 		return ($this->type == $o->type) && ($this->from == $o->from) && ($this->to == $o->to);
 
+	}
+
+	/**
+	 * @param Client $client
+	 */
+	public function createMapping($client, $name)
+	{
+		printf("> Creatin map %s >", $name);print_r($this);
+		#return;
+		return $client->assignPorts($name, $this->type,
+			$this->from[0],
+			$this->from[1],
+			$this->to
+		);
 	}
 }
