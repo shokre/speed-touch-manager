@@ -175,9 +175,17 @@ class Client
 		return $rez;
 	}
 
+	private function parse_range($s)
+	{
+		$s = split(' - ', $s);
+		foreach ($s as &$v)
+			$v *=1;
+		return $s;
+	}
+
 	public function listGamePorts($name)
 	{
-		$html = $this->fetch(self::URL_GAME_DETAILS . '?name=' . $name);
+		$html = $this->fetch(self::URL_GAME_DETAILS . '?name=' . urlencode($name));
 
 		$dw = new DOMWalker($html, '//div[@class="contentcontainer"]');
 		$rows = $dw->query('//table[@class="edittable"]/tr');
@@ -190,8 +198,9 @@ class Client
 				continue;
 			$a = array();
 			$a['proto'] = self::$PROTO_MAP[$row->childNodes->item(0)->nodeValue];
-			$a['from'] = split(' - ', $row->childNodes->item(1)->nodeValue);
-			$a['to'] = split(' - ', $row->childNodes->item(2)->nodeValue);
+			$a['from'] = $this->parse_range($row->childNodes->item(1)->nodeValue);
+			$z = $this->parse_range($row->childNodes->item(2)->nodeValue);
+			$a['to'] = array_shift($z);
 			$rez[] = $a;
 		}
 
@@ -456,9 +465,7 @@ class Client
 				$h = $mcs[0]->getAttribute('href');
 				$mat = array();
 				if (preg_match("/key=(([0-9A-F]{2}:){5}([0-9A-F]{2}))'/i", $h, $mat)) {
-					$h = $mat[1];
-					print_r($mat);
-					$a['mac'] = $h;
+					$a['mac'] = $mat[1];
 				}
 
 			}
