@@ -1,5 +1,7 @@
 <?php
 
+namespace Shokre\SpeedTouch\Utils;
+
 /**
  * class for walking trough HTML documents
  *
@@ -17,13 +19,12 @@ class DOMWalker
 	function __construct($html, $context = null)
 	{
 		$this->dom = $this->makeDOM($html);
-		$this->xpath = new DOMXPath($this->dom);
+		$this->xpath = new \DOMXPath($this->dom);
 		$this->content_node = null;
 		if ($context) {
 			$rez = $this->xpath->query($context);
 			$this->content_node = $rez->item(0);
-		}
-		else
+		} else
 			$this->content_node = null;
 	}
 
@@ -35,7 +36,7 @@ class DOMWalker
 
 	public function makeDOM($fp, $validateOnParse = false)
 	{
-		$doc = new DOMDocument();
+		$doc = new \DOMDocument();
 
 		// no whitespace
 		$doc->validateOnParse = $validateOnParse;

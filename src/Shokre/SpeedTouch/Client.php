@@ -1,6 +1,8 @@
 <?php
 
-require_once "DOMWalker.php";
+namespace Shokre\SpeedTouch;
+
+use Shokre\SpeedTouch\Utils\DOMWalker;
 
 /**
  * class for controling speed touch router
@@ -9,7 +11,7 @@ require_once "DOMWalker.php";
  * @copyright Copyright (c) 2002, Krešo Brlek
  * @version 0.0.2
  */
-class SpeedTouchManager
+class Client
 {
 	private $host;
 	private $user;
