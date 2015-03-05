@@ -12,22 +12,21 @@ class PortMapping
 	private $to = array();
 
 	/**
-	 * PortMapping constructor.
+	 * @param $type - PROTO_*
+	 * @param $src - int or array
+	 * @param null $dest - int or defaults to $src[0]
 	 */
-	public function __construct($type, $from, $to = null)
+	public function __construct($type, $src, $dest = null)
 	{
 		$this->type = $type;
-		if (!is_array($from))
-			$from = array($from, $from);
+		if (!is_array($src))
+			$src = array($src, $src);
 
-		if (!$to)
-			$to = $from;
+		if (!$dest)
+			$dest = $src[0];
 
-		if (!is_array($to))
-			$to = array($to, $to);
-
-		$this->from = $from;
-		$this->to = $to;
+		$this->from = $src;
+		$this->to = $dest;
 	}
 
 	public static function mapFromArray($its)
